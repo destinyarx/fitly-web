@@ -1,0 +1,10 @@
+export { ClosingCtaSection } from "./components/closing-cta-section";
+export { FaqSection } from "./components/faq-section";
+export { HeroSection } from "./components/hero-section";
+export { HowItWorksSection } from "./components/how-it-works-section";
+export { MirrorSection } from "./components/mirror-section";
+export { MobileAppSection } from "./components/mobile-app-section";
+export { PricingSection } from "./components/pricing-section";
+export { SiteFooter } from "./components/site-footer";
+export { SiteHeader } from "./components/site-header";
+export { TestimonialsSection } from "./components/testimonials-section";

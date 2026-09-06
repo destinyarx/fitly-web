@@ -1,0 +1,131 @@
+@import "tailwindcss";
+
+:root {
+  --surface: #fff6ec;
+  --surface-raised: #ffffff;
+  --ink: #1e1233;
+  --ink-deep: #140c28;
+  --violet: #4a2ab8;
+  --violet-light: #5b36d6;
+  --violet-dark: #3d1f9e;
+  --marigold: #ffe066;
+  --coral: #ff5c8a;
+  --peach: #ff8a5c;
+  --coral-deep: #e1477f;
+  --lilac: #d9c6ff;
+  --lilac-soft: #f3e2ff;
+  --peach-soft: #ffd9c2;
+  --mint: #c9e8d8;
+  --text-secondary: #6c6180;
+  --text-tertiary: #8a7f9b;
+  --text-on-dark-muted: #a99cbe;
+}
+
+@theme inline {
+  --color-background: var(--surface);
+  --color-foreground: var(--ink);
+  --color-surface: var(--surface);
+  --color-surface-raised: var(--surface-raised);
+  --color-ink: var(--ink);
+  --color-ink-deep: var(--ink-deep);
+  --color-violet: var(--violet);
+  --color-violet-light: var(--violet-light);
+  --color-violet-dark: var(--violet-dark);
+  --color-marigold: var(--marigold);
+  --color-coral: var(--coral);
+  --color-peach: var(--peach);
+  --color-coral-deep: var(--coral-deep);
+  --color-lilac: var(--lilac);
+  --color-lilac-soft: var(--lilac-soft);
+  --color-peach-soft: var(--peach-soft);
+  --color-mint: var(--mint);
+  --color-text-secondary: var(--text-secondary);
+  --color-text-tertiary: var(--text-tertiary);
+  --color-text-on-dark-muted: var(--text-on-dark-muted);
+  --font-sans: var(--font-jakarta);
+  --font-display: var(--font-bricolage);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  background: var(--surface);
+}
+
+body {
+  margin: 0;
+  background: var(--surface);
+  color: var(--ink);
+  font-family: var(--font-jakarta), sans-serif;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Mockup motion: floating badge cards and the mirror's scanning sweep. */
+@keyframes float-y {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-9px);
+  }
+}
+
+@keyframes sweep-y {
+  0% {
+    transform: translateY(-100%);
+  }
+  100% {
+    transform: translateY(340%);
+  }
+}
+
+@theme inline {
+  --animate-float-y: float-y 5.5s ease-in-out infinite;
+  --animate-sweep-y: sweep-y 8s ease-in-out infinite;
+}
+
+a {
+  color: var(--violet);
+  text-decoration: none;
+}
+
+::placeholder {
+  color: var(--text-on-dark-muted);
+}
+
+:focus-visible {
+  outline: 2px solid var(--violet);
+  outline-offset: 2px;
+}
+
+@utility field {
+  margin-top: 0.5rem;
+  min-height: 3rem;
+  width: 100%;
+  border-radius: 1rem;
+  border: 0;
+  background: white;
+  padding-inline: 1rem;
+  color: var(--ink);
+  box-shadow: inset 0 0 0 1.4px rgba(30, 18, 51, 0.12);
+}
