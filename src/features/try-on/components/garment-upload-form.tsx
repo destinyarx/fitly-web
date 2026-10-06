@@ -19,8 +19,15 @@ const formSchema = z.object({
 });
 type FormValues = z.infer<typeof formSchema>;
 
-export function GarmentUploadForm() {
+export function GarmentUploadForm({
+  afterSave = "/try-on/body",
+  selectForTryOn = true,
+}: {
+  readonly afterSave?: string;
+  readonly selectForTryOn?: boolean;
+}) {
   const router = useRouter();
+  const [entityId] = useState(() => crypto.randomUUID());
   const setGarmentId = useTryOnDraftStore((state) => state.setGarmentId);
   const [serverError, setServerError] = useState<string | null>(null);
   const { formState: { errors, isSubmitting }, handleSubmit, register } = useForm<FormValues>({
@@ -33,6 +40,7 @@ export function GarmentUploadForm() {
     const image = values.image.item(0);
     if (!image) return;
     const body = new FormData();
+    body.set("entityId", entityId);
     body.set("image", image);
     body.set("name", values.name);
     body.set("brand", values.brand);
@@ -44,8 +52,8 @@ export function GarmentUploadForm() {
       setServerError(response.status === 409 ? "Reconnect Google Drive, then try again." : "That garment could not be saved. Try another image.");
       return;
     }
-    setGarmentId(result.id);
-    router.push("/try-on/body");
+    if (selectForTryOn) setGarmentId(result.id);
+    router.push(afterSave);
     router.refresh();
   });
 
@@ -66,7 +74,7 @@ export function GarmentUploadForm() {
         </Field>
       </div>
       {serverError ? <p role="alert" className="rounded-2xl bg-coral/10 px-4 py-3 text-sm font-bold text-coral-deep">{serverError}</p> : null}
-      <button disabled={isSubmitting} className="min-h-12 w-full rounded-full bg-ink px-6 text-sm font-bold text-surface disabled:opacity-50">{isSubmitting ? "Saving to Drive…" : "Save garment & choose body"}</button>
+      <button disabled={isSubmitting} className="min-h-12 w-full rounded-full bg-ink px-6 text-sm font-bold text-surface disabled:opacity-50">{isSubmitting ? "Saving to Drive…" : selectForTryOn ? "Save garment & choose body" : "Save to Closet"}</button>
     </form>
   );
 }

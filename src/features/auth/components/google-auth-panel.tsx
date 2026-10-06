@@ -36,8 +36,8 @@ export function GoogleAuthPanel({
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
-          acceptsAiProcessing: isPhotoConsented,
-          acceptsTerms: isAgeConfirmed,
+          acceptedAiProcessing: isPhotoConsented,
+          acceptedTerms: isAgeConfirmed,
           next: nextPath,
         }),
       });

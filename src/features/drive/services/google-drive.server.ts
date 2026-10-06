@@ -125,6 +125,14 @@ export async function uploadDriveImage(args: {
   entityId: string;
   entityType: "body-template" | "garment" | "look";
 }) {
+  const existingFileId = await findDriveEntityFile({
+    accessToken: args.accessToken,
+    entityId: args.entityId,
+    entityType: args.entityType,
+    parentId: args.parentId,
+  });
+  if (existingFileId) return existingFileId;
+
   const boundary = `fitly_${crypto.randomUUID().replaceAll("-", "")}`;
   const metadata = JSON.stringify({
     name: args.name,
@@ -154,6 +162,28 @@ export async function uploadDriveImage(args: {
   });
   if (!response.ok) throw new Error(mapDriveStatus(response.status));
   return fileSchema.parse(await response.json()).id;
+}
+
+async function findDriveEntityFile(args: {
+  accessToken: string;
+  entityId: string;
+  entityType: "body-template" | "garment" | "look";
+  parentId: string;
+}) {
+  const environment = getServerEnv().fitlyEnvironment;
+  const query = [
+    `'${args.parentId}' in parents`,
+    "trashed = false",
+    `appProperties has { key='fitlyEntityId' and value='${args.entityId}' }`,
+    `appProperties has { key='fitlyEntityType' and value='${args.entityType}' }`,
+    `appProperties has { key='fitlyEnvironment' and value='${environment}' }`,
+  ].join(" and ");
+  const response = await fetch(
+    `${DRIVE_API}/files?q=${encodeURIComponent(query)}&fields=files(id)&pageSize=1`,
+    { headers: { Authorization: `Bearer ${args.accessToken}` }, cache: "no-store" },
+  );
+  if (!response.ok) throw new Error(mapDriveStatus(response.status));
+  return fileListSchema.parse(await response.json()).files[0]?.id;
 }
 
 export async function downloadDriveFile(accessToken: string, fileId: string) {

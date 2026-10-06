@@ -48,10 +48,18 @@ const COPY: Record<AuthMode, AuthCopy> = {
 };
 
 const CALLBACK_ERRORS: Record<string, string> = {
+  access_denied:
+    'Google did not authorize sign-in. Try again with an account that has access to Fitly and allow the requested permissions.',
+  oauth_failed:
+    'Google sign-in could not be completed. Start again from this page. If it keeps happening, contact Fitly support.',
   missing_code:
     "Google sent us back without a sign-in code. Please try signing in again.",
   exchange_failed:
     "We could not finish that sign-in. Please try again, and pick the same Google account you used before.",
+  drive_account_mismatch:
+    "Use the same Google account for Fitly and Google Drive.",
+  drive_setup_failed:
+    "Google sign-in worked, but Drive could not be connected. Please try again and allow Drive access.",
 };
 
 type AuthScreenProps = {
@@ -65,10 +73,10 @@ export function AuthScreen({ errorCode, mode, nextPath }: AuthScreenProps) {
   const callbackError = errorCode ? CALLBACK_ERRORS[errorCode] : undefined;
 
   return (
-    <div className="grid min-h-dvh bg-[#F2ECE2] lg:grid-cols-[1.08fr_1fr]">
+    <div className="grid min-h-dvh min-w-0 grid-cols-1 bg-[#F2ECE2] lg:grid-cols-[1.08fr_1fr]">
       <EditorialPanel copy={copy} />
 
-      <main className="flex items-center justify-center px-5 py-11 sm:px-14">
+      <main className="flex min-w-0 items-center justify-center px-5 py-11 sm:px-14">
         <div className="w-full max-w-[436px] rounded-[34px] bg-surface-raised p-7 shadow-[0_30px_70px_-40px_rgba(30,18,51,0.45),inset_0_0_0_1px_rgba(30,18,51,0.05)] sm:p-10">
           <nav aria-label="Authentication" className="flex rounded-full bg-ink/6 p-1">
             <AuthTab href="/sign-in" isActive={mode === "signin"}>

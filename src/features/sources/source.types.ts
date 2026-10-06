@@ -7,6 +7,7 @@ export type BodyTemplate = {
   readonly isPrimary: boolean;
   readonly availabilityStatus: "available" | "missing";
   readonly createdAt: string;
+  readonly usageCount: number;
 };
 
 export type Garment = {

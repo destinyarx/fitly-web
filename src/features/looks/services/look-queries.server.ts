@@ -14,11 +14,13 @@ const rowSchema = z.object({
   garment_snapshots: z.array(z.object({ name: z.string().optional(), category: z.string().optional() })),
   failure_reason: z.string().nullable(),
   created_at: z.string(),
+  body_template_id: z.string().uuid().nullable(),
+  garment_ids: z.array(z.string().uuid()),
 });
 
 export async function getLooks(): Promise<Look[]> {
   const { supabase } = await requireUser();
-  const { data, error } = await supabase.from("web_tryon_results").select("id,generation_status,delivery_status,is_favorite,garment_snapshots,failure_reason,created_at").order("created_at", { ascending: false });
+  const { data, error } = await supabase.from("web_tryon_results").select("id,generation_status,delivery_status,is_favorite,garment_snapshots,failure_reason,created_at,body_template_id,garment_ids").order("created_at", { ascending: false });
   if (error) throw new Error("looks_load_failed");
   return z.array(rowSchema).parse(data).map((row) => ({
     id: row.id,
@@ -29,5 +31,7 @@ export async function getLooks(): Promise<Look[]> {
     garmentCategory: row.garment_snapshots[0]?.category ?? "garment",
     failureReason: row.failure_reason,
     createdAt: row.created_at,
+    bodyTemplateId: row.body_template_id,
+    garmentId: row.garment_ids[0] ?? null,
   }));
 }

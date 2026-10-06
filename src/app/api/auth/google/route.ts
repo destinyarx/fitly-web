@@ -21,8 +21,10 @@ export async function POST(request: Request) {
   const origin = new URL(request.url).origin;
   const callbackUrl = new URL(AUTH_CALLBACK_PATH, origin);
   const next = parsed.data.next || POST_SIGN_IN_PATH;
+  const supabase = await createServerSupabaseClient();
+  const { data: currentUser } = await supabase.auth.getUser();
   const cookieStore = await cookies();
-  cookieStore.set(PRE_AUTH_COOKIE, await createPreAuthState(next), {
+  cookieStore.set(PRE_AUTH_COOKIE, await createPreAuthState(next, currentUser.user?.id ?? null), {
     httpOnly: true,
     sameSite: "lax",
     secure: process.env.NODE_ENV === "production",
@@ -30,7 +32,6 @@ export async function POST(request: Request) {
     maxAge: PRE_AUTH_MAX_AGE_SECONDS,
   });
 
-  const supabase = await createServerSupabaseClient();
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: "google",
     options: {

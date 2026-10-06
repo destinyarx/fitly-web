@@ -127,6 +127,9 @@ Design each reachable state:
 | Empty Closet | Offer camera or file upload. Show retailer URL extraction as `Coming soon`. |
 | Filtered to nothing | Keep filters visible and explain the empty result. |
 | Generating | Dark focused surface with honest duration and progress semantics. |
+| Saving to Drive | Keep the preview area in lilac with the violet mirror mark and explicit saving copy. Generation is finished; polling continues until delivery succeeds or fails. |
+| Image loading | Preserve the image aspect ratio, show a lilac placeholder with the violet mirror mark and a short loading label. Reveal the private image when its load event succeeds. |
+| Image fetch failed | Replace the blank preview with an unavailable message and a keyboard-accessible Retry image action. |
 | Queued | Calm status with position or estimate when trustworthy. |
 | Generation failed | Explain the AI or provider failure, offer a new attempt, and state that quota was not consumed. |
 | Drive delivery failed | Explain that generation succeeded, offer Drive-delivery retry, and state that the attempt remains counted. |
@@ -172,9 +175,19 @@ FAQ-style disclosure uses native `<details name="…">` for exclusive open behav
 
 ### Auth screens
 
-Sign-in and sign-up are one component with a `mode`, so the two screens cannot drift. The layout is a two-column grid: a dark editorial panel carrying the photo, hero copy, and the privacy line, and a white `34px` card. The editorial panel is hidden below `lg` — the card is the whole screen on a phone. The card leads with a pill tab pair (`Sign in` / `Create account`) that navigates between `/login` and `/signup` rather than toggling client state.
+Sign-in and sign-up are one component with a `mode`, so the two screens cannot drift. The layout is a two-column grid: a dark editorial panel carrying the photo, hero copy, and the privacy line, and a white `34px` card. The editorial panel is hidden below `lg`; the card is the whole screen on a phone. The card leads with a pill tab pair (`Sign in` / `Create account`) that navigates between `/sign-in` and `/sign-up` rather than toggling client state.
 
-Google is the only sign-in control. Sign-up gates it behind two consent checkboxes; the disabled button keeps its label, and a visible hint (not color alone) says why it is unavailable. Callback failures return to `/login?error=…` and render as an alert above the card content.
+Google is the only sign-in control. Both modes gate it behind two consent checkboxes. The disabled button keeps its label, and a visible hint explains why it is unavailable. Callback failures return to `/sign-in?error=...` and render as an alert above the card content.
+
+Access-denied callbacks explain that the account needs access and the requested permissions. Other provider failures offer a fresh sign-in attempt and a support fallback. Use fixed app copy rather than displaying provider-supplied error descriptions.
+
+### Authenticated shell
+
+Successful auth lands on `/looks` unless a signed same-origin path was carried through OAuth.
+
+Desktop uses a fixed 248px ink sidebar with the Fitly mark, four primary destinations, daily quota, account identity, and Drive state. Phone layouts use a floating ink bottom bar and reserve bottom padding for it. Page headers use a violet eyebrow, Bricolage display title, short supporting line, and compact actions.
+
+Private image cards use 24px to 32px radii, a warm white body, and portrait 4:5 media. Missing files keep their card and show a text status. Generation uses a dark focused view with an animated mirror mark. The global reduced-motion rule collapses the animation when requested.
 
 ## 11. Maintenance
 

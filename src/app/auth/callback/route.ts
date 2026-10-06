@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+import { cookies } from "next/headers";
 
 import { getServerEnv } from "@/config/env";
 import {
@@ -14,7 +15,6 @@ import {
 } from "@/features/drive/services/google-drive.server";
 import { createAdminSupabaseClient } from "@/lib/supabase/admin";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
-import { cookies } from "next/headers";
 
 /**
  * Google redirects here with an authorization code. Everything in the query
@@ -28,6 +28,12 @@ export async function GET(request: NextRequest) {
   cookieStore.delete(PRE_AUTH_COOKIE);
   const next = preAuthState?.next ?? POST_SIGN_IN_PATH;
 
+  const providerError = searchParams.get('error');
+  if (providerError !== null) {
+    const errorCode = providerError === 'access_denied' ? 'access_denied' : 'oauth_failed';
+    return NextResponse.redirect(`${origin}/sign-in?error=${errorCode}`);
+  }
+
   if (!code || !preAuthState) {
     return NextResponse.redirect(`${origin}/sign-in?error=missing_code`);
   }
@@ -40,6 +46,9 @@ export async function GET(request: NextRequest) {
   }
 
   try {
+    if (preAuthState.expectedUserId && data.user.id !== preAuthState.expectedUserId) {
+      throw new Error("drive_account_mismatch");
+    }
     const providerAccessToken = data.session.provider_token;
     const providerRefreshToken = data.session.provider_refresh_token;
     if (!providerAccessToken || !providerRefreshToken) {

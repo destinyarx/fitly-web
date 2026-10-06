@@ -5,6 +5,7 @@ import { requireUser, authenticationErrorResponse } from "@/lib/auth/require-use
 import { createAdminSupabaseClient } from "@/lib/supabase/admin";
 
 const idSchema = z.string().uuid();
+const updateSchema = z.object({ isFavorite: z.boolean() });
 
 export async function GET(_request: Request, context: { params: Promise<{ id: string }> }) {
   try {
@@ -30,4 +31,22 @@ export async function DELETE(_request: Request, context: { params: Promise<{ id:
     if (error) throw new Error("delete_failed");
     return new Response(null, { status: 204 });
   } catch (error) { return authenticationErrorResponse(error); }
+}
+
+export async function PATCH(request: Request, context: { params: Promise<{ id: string }> }) {
+  try {
+    const id = idSchema.parse((await context.params).id);
+    const update = updateSchema.parse(await request.json());
+    const { supabase } = await requireUser();
+    const { data, error } = await supabase
+      .from("web_tryon_results")
+      .update({ is_favorite: update.isFavorite })
+      .eq("id", id)
+      .select("id,is_favorite")
+      .maybeSingle();
+    if (error || !data) return Response.json({ error: "not_found" }, { status: 404 });
+    return Response.json({ id: data.id, isFavorite: data.is_favorite });
+  } catch (error) {
+    return authenticationErrorResponse(error);
+  }
 }

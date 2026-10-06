@@ -35,7 +35,24 @@ export async function GET(
 
     if (typeof data.drive_file_id === "string") {
       const { accessToken } = await getDriveAccess(user.id);
-      const file = await downloadDriveFile(accessToken, data.drive_file_id);
+      let file;
+      try {
+        file = await downloadDriveFile(accessToken, data.drive_file_id);
+      } catch (downloadError) {
+        if (
+          downloadError instanceof Error &&
+          downloadError.message === "source_missing" &&
+          params.kind !== "look"
+        ) {
+          await admin
+            .from(table)
+            .update({ availability_status: "missing" })
+            .eq("id", params.id)
+            .eq("user_id", user.id);
+          return Response.json({ error: "source_missing" }, { status: 404 });
+        }
+        throw downloadError;
+      }
       return new Response(new Uint8Array(file.bytes), {
         headers: {
           "Content-Type": file.contentType,

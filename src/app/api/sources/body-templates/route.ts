@@ -16,6 +16,7 @@ export async function POST(request: Request) {
     const formData = await request.formData();
     const file = formData.get("image");
     const metadata = bodyTemplateMetadataSchema.safeParse({
+      entityId: formData.get("entityId"),
       name: formData.get("name"),
       pose: formData.get("pose"),
     });
@@ -24,7 +25,15 @@ export async function POST(request: Request) {
     }
 
     const image = await normalizeImage(file);
-    const id = crypto.randomUUID();
+    const id = metadata.data.entityId;
+    const admin = createAdminSupabaseClient();
+    const { data: existing } = await admin
+      .from("web_body_templates")
+      .select("id")
+      .eq("id", id)
+      .eq("user_id", user.id)
+      .maybeSingle();
+    if (existing) return Response.json(existing);
     const { accessToken, credentials } = await getDriveAccess(user.id);
     const driveFileId = await uploadDriveImage({
       accessToken,
@@ -35,7 +44,6 @@ export async function POST(request: Request) {
       entityId: id,
       entityType: "body-template",
     });
-    const admin = createAdminSupabaseClient();
     const { count } = await admin
       .from("web_body_templates")
       .select("id", { count: "exact", head: true })
@@ -68,7 +76,7 @@ export async function POST(request: Request) {
       if (["invalid_image", "image_too_large"].includes(error.message)) {
         return Response.json({ error: error.message }, { status: 400 });
       }
-      if (error.message === "drive_reauthorization_required") {
+      if (["drive_reauthorization_required", "source_missing"].includes(error.message)) {
         return Response.json({ error: error.message }, { status: 409 });
       }
     }

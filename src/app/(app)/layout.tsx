@@ -27,6 +27,7 @@ export default async function AuthenticatedLayout({ children }: LayoutProps<"/">
         limit: typeof quotaRow?.daily_limit === "number" ? quotaRow.daily_limit : 3,
       }}
       isDriveConnected={driveRow?.status === "connected"}
+      userId={data.user.id}
     >
       {children}
     </AppShell>

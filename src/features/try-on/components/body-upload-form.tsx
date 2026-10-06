@@ -17,8 +17,9 @@ const formSchema = z.object({
 });
 type FormValues = z.infer<typeof formSchema>;
 
-export function BodyUploadForm() {
+export function BodyUploadForm({ afterSave = "/try-on/review" }: { readonly afterSave?: string }) {
   const router = useRouter();
+  const [entityId] = useState(() => crypto.randomUUID());
   const setBodyTemplateId = useTryOnDraftStore((state) => state.setBodyTemplateId);
   const [serverError, setServerError] = useState<string | null>(null);
   const { formState: { errors, isSubmitting }, handleSubmit, register } = useForm<FormValues>({ resolver: zodResolver(formSchema), defaultValues: { name: "", pose: "full" } });
@@ -27,13 +28,14 @@ export function BodyUploadForm() {
     const image = values.image.item(0);
     if (!image) return;
     const body = new FormData();
+    body.set("entityId", entityId);
     body.set("image", image); body.set("name", values.name); body.set("pose", values.pose);
     const response = await fetch("/api/sources/body-templates", { method: "POST", body });
     const result: unknown = await response.json();
     if (!response.ok || typeof result !== "object" || result === null || !("id" in result) || typeof result.id !== "string") {
       setServerError(response.status === 409 ? "You have reached the five-template limit or Drive needs reconnecting." : "That body template could not be saved."); return;
     }
-    setBodyTemplateId(result.id); router.push("/try-on/review"); router.refresh();
+    setBodyTemplateId(result.id); router.push(afterSave); router.refresh();
   });
   return <form onSubmit={submit} className="space-y-4" noValidate>
     <label className="flex min-h-40 cursor-pointer flex-col items-center justify-center rounded-[24px] border-2 border-dashed border-violet/25 bg-lilac-soft/40 p-5 text-center"><span className="font-display text-lg font-bold">Add a body template</span><span className="mt-1 text-xs text-text-secondary">Use a clear, well-lit photo with your body visible.</span><input type="file" accept="image/jpeg,image/png,image/webp" className="mt-4 block max-w-full text-xs" {...register("image")} />{errors.image ? <span className="mt-2 text-xs font-bold text-coral-deep">{errors.image.message}</span> : null}</label>

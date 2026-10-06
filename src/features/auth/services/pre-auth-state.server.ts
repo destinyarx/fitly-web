@@ -15,15 +15,20 @@ export type PreAuthState = {
   readonly privacyVersion: string;
   readonly aiProcessingVersion: string;
   readonly expiresAt: number;
+  readonly expectedUserId: string | null;
 };
 
-export async function createPreAuthState(next: string): Promise<string> {
+export async function createPreAuthState(
+  next: string,
+  expectedUserId: string | null,
+): Promise<string> {
   const state: PreAuthState = {
     next,
     termsVersion: TERMS_VERSION,
     privacyVersion: PRIVACY_VERSION,
     aiProcessingVersion: AI_PROCESSING_VERSION,
     expiresAt: Date.now() + PRE_AUTH_MAX_AGE_SECONDS * 1000,
+    expectedUserId,
   };
   const payload = toBase64Url(JSON.stringify(state));
   const signature = await sign(payload);
@@ -49,7 +54,8 @@ export async function readPreAuthState(value: string | undefined): Promise<PreAu
       state.privacyVersion !== PRIVACY_VERSION ||
       state.aiProcessingVersion !== AI_PROCESSING_VERSION ||
       typeof state.expiresAt !== "number" ||
-      state.expiresAt < Date.now()
+      state.expiresAt < Date.now() ||
+      (state.expectedUserId !== null && typeof state.expectedUserId !== "string")
     ) {
       return null;
     }
@@ -59,6 +65,7 @@ export async function readPreAuthState(value: string | undefined): Promise<PreAu
       privacyVersion: state.privacyVersion,
       aiProcessingVersion: state.aiProcessingVersion,
       expiresAt: state.expiresAt,
+      expectedUserId: state.expectedUserId,
     };
   } catch {
     return null;

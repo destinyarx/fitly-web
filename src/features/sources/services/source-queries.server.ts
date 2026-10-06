@@ -28,12 +28,24 @@ const garmentRowSchema = z.object({
 
 export async function getBodyTemplates(): Promise<BodyTemplate[]> {
   const { supabase } = await requireUser();
-  const { data, error } = await supabase
-    .from("web_body_templates")
-    .select("id,name,pose,is_primary,availability_status,created_at")
-    .order("is_primary", { ascending: false })
-    .order("created_at", { ascending: false });
-  if (error) throw new Error("body_templates_load_failed");
+  const [{ data, error }, { data: resultRows, error: resultError }] = await Promise.all([
+    supabase
+      .from("web_body_templates")
+      .select("id,name,pose,is_primary,availability_status,created_at")
+      .order("is_primary", { ascending: false })
+      .order("created_at", { ascending: false }),
+    supabase.from("web_tryon_results").select("body_template_id"),
+  ]);
+  if (error || resultError) throw new Error("body_templates_load_failed");
+  const usage = new Map<string, number>();
+  for (const result of resultRows ?? []) {
+    if (typeof result.body_template_id === "string") {
+      usage.set(
+        result.body_template_id,
+        (usage.get(result.body_template_id) ?? 0) + 1,
+      );
+    }
+  }
   return z.array(bodyRowSchema).parse(data).map((row) => ({
     id: row.id,
     name: row.name,
@@ -41,6 +53,7 @@ export async function getBodyTemplates(): Promise<BodyTemplate[]> {
     isPrimary: row.is_primary,
     availabilityStatus: row.availability_status,
     createdAt: row.created_at,
+    usageCount: usage.get(row.id) ?? 0,
   }));
 }
 

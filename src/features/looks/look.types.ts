@@ -7,4 +7,6 @@ export type Look = {
   readonly garmentCategory: string;
   readonly failureReason: string | null;
   readonly createdAt: string;
+  readonly bodyTemplateId: string | null;
+  readonly garmentId: string | null;
 };

@@ -2,7 +2,9 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useEffect } from "react";
 
+import { useTryOnDraftStore } from "@/features/try-on/stores/try-on-draft.store";
 import { FitlyLogo } from "@/shared/components/fitly-logo";
 
 type AppShellProps = {
@@ -11,6 +13,7 @@ type AppShellProps = {
   readonly email: string;
   readonly quota: { readonly used: number; readonly limit: number };
   readonly isDriveConnected: boolean;
+  readonly userId: string;
 };
 
 const NAV_ITEMS = [
@@ -26,8 +29,11 @@ export function AppShell({
   email,
   quota,
   isDriveConnected,
+  userId,
 }: AppShellProps) {
   const pathname = usePathname();
+  const claimDraft = useTryOnDraftStore((state) => state.claimForUser);
+  useEffect(() => claimDraft(userId), [claimDraft, userId]);
   const left = Math.max(quota.limit - quota.used, 0);
 
   return (

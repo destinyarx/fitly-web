@@ -2,7 +2,7 @@
 
 Read this before writing code. For visual work, read `DESIGN.md` as well.
 
-**Status:** Next.js foundation. The libraries and shared clients are configured. Web product features, web-specific Supabase migrations, Google Drive integration, authentication flows, and the web generation branch are not implemented yet.
+**Status:** Local web implementation complete; generation and recovery delivery verified for the current tester. On 2026-10-06, the linked project's history confirmed the base web migration and `20261006000000_fix_web_generation_admission.sql` are applied. The tester successfully generated a look. Automatic Drive delivery failed because the Edge runtime lacks Google OAuth client secrets; retrying delivery through the local server saved the recovery image to Drive without rerunning generation. Adding the worker's Google OAuth credentials and matching environment still requires explicit authorization. Automatic worker delivery, broader ownership, and mobile regression verification remain outstanding.
 
 The sibling `fitly-mobile` project is a product reference, not a code dependency. The web app shares its Supabase account, profile, consent, quota, and future subscription with mobile. It does not share image libraries or generated looks.
 
@@ -89,7 +89,7 @@ authenticated
 
 Use App Router route groups to separate public and authenticated layouts without adding URL segments. Layout redirects improve navigation but are not authorization.
 
-Built so far: `/` (landing), `/login` and `/signup` under the `(auth)` group, and the `GET /auth/callback` route handler that exchanges the Google authorization code for a session. `/terms` and `/privacy` are linked from the sign-up consents but do not exist yet. Completed sign-in currently lands on `/`; it moves to Looks when that route exists (`POST_SIGN_IN_PATH` in `src/features/auth/auth.constants.ts`).
+Built routes: `/`, `/sign-in`, `/sign-up`, `/terms`, `/privacy`, `/looks`, `/looks/[lookId]`, `/closet`, `/closet/add`, `/try-on/garment`, `/try-on/body`, `/try-on/review`, `/try-on/generating`, `/me`, `/me/add-template`, and `/settings`. `/login` and `/signup` remain redirect aliases. The signed OAuth callback records consent, verifies that the Drive and Fitly Google identities match, stores the refresh token in Vault, creates the visible Fitly Drive folders, and redirects to `/looks` or a validated same-origin `next` path.
 
 ## 4. Architecture
 
@@ -159,18 +159,20 @@ The shared backend repository is `C:\Users\AlphaQuadrant\Documents\0 self projec
 - URL extraction is a future feature and must be labeled `Coming soon`.
 - Fitly does not fabricate AI-provider confidence percentages.
 
-## 8. Not built
+## 8. Implementation map and remaining work
 
-- Web-specific Supabase tables, RLS, Vault access functions, atomic quota ledger, and staging policies
-- Drive credential capture, session refresh Proxy, and protected routes (the OAuth callback exists; nothing yet reads or stores the Google refresh token)
-- Google Drive folder management, authenticated media delivery, and source upload
-- Body-template and garment forms
-- Web branches in `generate-tryon`, `run-generation`, and `delete-account`
-- Generation observation, Drive delivery retry, Looks, Closet, profile, settings, sharing, and deletion
-- Automated tests and analytics
-- `/terms` and `/privacy` pages linked from the sign-up consents
+- `src/app/api/auth/google` and `src/app/auth/callback` own the signed consent handoff, Google OAuth start, identity check, Vault write, and post-auth redirect.
+- OAuth callback errors return fixed sign-in alerts for access denial or OAuth failure before code exchange. Provider error descriptions are never rendered. Supabase's Site URL must point to the app origin, while Google Cloud's redirect URI points to Supabase's provider callback. Using the provider callback as the Site URL causes OAuth errors to loop.
+- `src/app/api/sources` owns normalized, idempotent Drive uploads and tracked-file deletion. `src/app/api/media` streams owned private Drive files with `private, no-store` caching.
+- The ID-only Zustand draft drives the garment-first flow. React Hook Form and Zod validate source forms, while the server validates again.
+- `src/app/api/try-on` stages one owned body template and one owned garment under a random attempt ID, then invokes `generate-tryon`.
+- The shared backend migration is `supabase/migrations/20260906000000_fitly_web_platform.sql` in `supabase-side-projects`. It adds web tables, RLS, Vault functions, and the shared atomic ledger.
+- `generate-tryon`, `run-generation`, and `delete-account` now have web-aware branches while keeping mobile requests without `clientPlatform` valid. `cleanup-web-recovery` removes expired seven-day recovery objects.
+- Looks supports status polling, private download, browser file sharing, favorites, delivery retry, and tracked deletion. Closet and body-template views support standalone creation and deletion.
+- Generation polling continues after AI completion until Drive delivery is delivered or failed. Pending look detail pages observe the same status endpoint and refresh automatically; they defer the image request until delivery settles. Private image components show loading and retry states rather than a blank failed image.
+- The Looks browser-safe public API is `features/looks/index.ts`; server route data loading uses its explicit `features/looks/server.ts` public entry point to keep server-only imports out of the client graph. See ADR 0005.
 
-Do not describe these as working until they exist and have been verified.
+Still required: explicitly authorize adding `GOOGLE_OAUTH_CLIENT_ID`, `GOOGLE_OAUTH_CLIENT_SECRET`, and `FITLY_ENVIRONMENT` to the Edge runtime, then retest automatic worker delivery. See `docs/drive-delivery-diagnosis.md`. Deployment presence does not verify deployed source parity, cleanup scheduling, all secrets, or every OAuth configuration. Confirm those settings rather than assuming they are absent. Analytics and automated browser integration tests remain future work. Do not call the full remote flow verified until the two-account, Drive revocation, quota concurrency, and mobile regression checks pass against the configured Supabase project. The admission regression in the shared backend's `supabase/tests/web-generation-admission.sql` passed against a temporary function copy with all writes rolled back; subsequent migration history confirmed the admission fix is now applied.
 
 ## 9. Future product work
 
