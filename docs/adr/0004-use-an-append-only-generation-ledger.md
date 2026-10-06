@@ -13,7 +13,7 @@ The web and mobile apps need one daily allowance even though their result tables
 
 Add an append-only `generation_attempts` table shared by both platforms. Each record identifies the user, platform, admitted result, reservation state, and creation time.
 
-A database function performs admission in one transaction. It locks the user's quota scope, counts active or consumed attempts since 00:00 UTC, enforces the profile's daily limit, inserts the attempt, and creates or binds the platform result.
+A database function performs admission in one transaction. It locks the user's quota scope, counts active or consumed attempts since 00:00 UTC, enforces the smaller of the profile's daily limit and the hard ceiling of three, inserts the attempt, and creates or binds the platform result.
 
 The attempt transitions between reserved, consumed, and released states. AI or provider failure releases the reservation. Successful generation consumes it. Drive delivery failure does not release it because generation succeeded.
 
@@ -31,3 +31,7 @@ Deleting a look removes its image and visible result metadata according to produ
 - Result deletion cannot refund a successful generation.
 - Admission and refund behavior become testable independently of result presentation.
 - The ledger needs retention and privacy rules, but it must remain immutable to ordinary clients.
+
+## 2026-10-06 enforcement clarification
+
+Quota reads and admission share a hard ceiling of three across platforms. Preflight checks reduce unnecessary source staging, but only locked database admission reserves allowance. Client validation is advisory and quota lookup errors block generation. A structured HTTP 429 identifies exhausted usage with remaining allowance and the next UTC reset. The diagnostic provider endpoint requires service credentials so ordinary users cannot bypass admission.

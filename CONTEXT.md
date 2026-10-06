@@ -146,7 +146,7 @@ The shared backend repository is `C:\Users\AlphaQuadrant\Documents\0 self projec
 ## 7. Settled product rules
 
 - Google OAuth is the only production identity method.
-- The daily generation limit is 3 across mobile and web and resets at 00:00 UTC.
+- The daily generation limit has a hard ceiling of 3 across mobile and web and resets at 00:00 UTC. Reserved attempts count while processing; AI failures release their slots, Drive delivery failures remain counted, and deleting looks does not refund usage. Lower administrative limits may still block generation.
 - Each platform library permits 5 body templates.
 - The first web release generates one garment at a time.
 - Half-body templates cannot generate bottoms, dresses, or shoes.
@@ -165,6 +165,7 @@ The shared backend repository is `C:\Users\AlphaQuadrant\Documents\0 self projec
 - OAuth callback errors return fixed sign-in alerts for access denial or OAuth failure before code exchange. Provider error descriptions are never rendered. Supabase's Site URL must point to the app origin, while Google Cloud's redirect URI points to Supabase's provider callback. Using the provider callback as the Site URL causes OAuth errors to loop.
 - `src/app/api/sources` owns normalized, idempotent Drive uploads and tracked-file deletion. `src/app/api/media` streams owned private Drive files with `private, no-store` caching.
 - The ID-only Zustand draft drives the garment-first flow. React Hook Form and Zod validate source forms, while the server validates again.
+- The review screen polls authenticated usage, checks again before submitting, and blocks generation if usage cannot be verified. `GET /api/try-on/quota` returns private, uncached usage; the Next.js POST checks it before staging and preserves structured `daily_cap_reached` errors. The Edge admission preflight checks usage before source validation, while database admission locks and rechecks the shared ledger. Backend hard-ceiling migration `20261006010000_enforce_three_daily_generations.sql` and Edge changes are prepared locally, not applied/deployed.
 - `src/app/api/try-on` stages one owned body template and one owned garment under a random attempt ID, then invokes `generate-tryon`.
 - The shared backend migration is `supabase/migrations/20260906000000_fitly_web_platform.sql` in `supabase-side-projects`. It adds web tables, RLS, Vault functions, and the shared atomic ledger.
 - `generate-tryon`, `run-generation`, and `delete-account` now have web-aware branches while keeping mobile requests without `clientPlatform` valid. `cleanup-web-recovery` removes expired seven-day recovery objects.

@@ -192,3 +192,7 @@ Private image cards use 24px to 32px radii, a warm white body, and portrait 4:5 
 ## 11. Maintenance
 
 Keep tokens in `src/app/globals.css` or a future typed token module aligned with this file. Update both when a token changes. Record deliberate differences from the mobile app here so later work does not accidentally reverse them.
+
+### Daily usage validation
+
+The review panel keeps its dark surface, marigold usage badge and coral error treatment. Show the latest used/limit count and disable generation at the cap. The alert reads: "Daily limit reached. You have used all 3 try-ons for today. Your allowance resets at 00:00 UTC." If usage cannot be confirmed, disable generation and offer "Retry usage check". Refresh usage while the panel is open and before each submission; do not present an unavailable quota as zero usage.

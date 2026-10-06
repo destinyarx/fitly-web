@@ -1,5 +1,8 @@
 import { z } from "zod";
 
+import { quotaReachedSchema } from '@/features/try-on';
+import { getGenerationQuota } from '@/features/try-on/server';
+
 import { downloadDriveFile, getDriveAccess } from "@/features/drive/services/google-drive.server";
 import { requireUser, authenticationErrorResponse } from "@/lib/auth/require-user.server";
 import { createAdminSupabaseClient } from "@/lib/supabase/admin";
@@ -16,6 +19,8 @@ export async function POST(request: Request) {
     const parsed = requestSchema.safeParse(await request.json().catch(() => null));
     if (!parsed.success) return Response.json({ error: "invalid_request" }, { status: 400 });
     const { supabase, user } = await requireUser();
+    const quota = await getGenerationQuota();
+    if (quota.remaining === 0) return Response.json({ error: "daily_cap_reached", quota }, { status: 429 });
     const admin = createAdminSupabaseClient();
     const [{ data: body }, { data: garment }] = await Promise.all([
       admin.from("web_body_templates").select("id,user_id,pose,drive_file_id,availability_status,mime_type").eq("id", parsed.data.bodyTemplateId).eq("user_id", user.id).maybeSingle(),
@@ -67,7 +72,14 @@ export async function POST(request: Request) {
     const response = z.object({ resultId: z.string().uuid(), status: z.literal("queued") }).safeParse(data);
     if (error || !response.success) {
       const status = error?.context instanceof Response ? error.context.status : 502;
+      const failure = error?.context instanceof Response ? await error.context.clone().json().catch(() => null) : data;
+      const quotaFailure = quotaReachedSchema.safeParse(failure);
       await purgeStaging(admin, stagingAttemptId, staged);
+      if (quotaFailure.success) return Response.json(quotaFailure.data, { status: 429 });
+      if (status === 429) {
+        const latestQuota = await getGenerationQuota();
+        return Response.json({ error: "daily_cap_reached", quota: { ...latestQuota, remaining: 0 } }, { status: 429 });
+      }
       return Response.json({ error: "generation_rejected" }, { status });
     }
     return Response.json(response.data, { status: 202 });
