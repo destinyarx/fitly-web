@@ -1,6 +1,7 @@
 import { getBodyTemplates, getGarments } from "@/features/sources";
 import { ReviewDraft } from "@/features/try-on";
 import { getGenerationQuota } from "@/features/try-on/server";
+import { AppLink } from "@/shared/components/app-button";
 import { PageHeader } from "@/shared/components/page-header";
 
 export default async function ReviewStepPage() {
@@ -12,8 +13,13 @@ export default async function ReviewStepPage() {
 
   return (
     <>
-      <PageHeader eyebrow="Step 3 of 3" title="Check the mirror" description="Confirm the exact body template and garment before using one daily try-on." />
-      <div className="mx-auto max-w-[850px] px-5 py-8 sm:px-8 lg:px-12"><ReviewDraft templates={templates} garments={garments} quota={quota} /></div>
+      <PageHeader
+        crumb="Mirror"
+        title="Try-on studio"
+        description="Confirm the exact body template and garment before using one daily try-on."
+        actions={<AppLink href="/try-on/garment" variant="ghost">Change garment</AppLink>}
+      />
+      <div className="mx-auto w-full max-w-[1560px] px-5 pt-[22px] pb-[60px] md:px-7"><ReviewDraft templates={templates} garments={garments} quota={quota} /></div>
     </>
   );
 }

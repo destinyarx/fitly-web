@@ -33,6 +33,7 @@ Use one light theme. Dark surfaces are intentional components, not a dark-mode v
 | `lilac-soft` | `#F3E2FF` | Supporting surface. |
 | `peach-soft` | `#FFD9C2` | Supporting tile tint. |
 | `mint` | `#C9E8D8` | Privacy and data panels. |
+| `canvas` | `#EDEAE4` | Authenticated app background behind cream panels. |
 | `text-secondary` | `#6C6180` | Supporting body copy. |
 | `text-tertiary` | `#8A7F9B` | Captions and metadata. |
 | `text-on-dark-muted` | `#A99CBE` | Muted text on dark surfaces. |
@@ -185,9 +186,25 @@ Access-denied callbacks explain that the account needs access and the requested 
 
 Successful auth lands on `/looks` unless a signed same-origin path was carried through OAuth.
 
-Desktop uses a fixed 248px ink sidebar with the Fitly mark, four primary destinations, daily quota, account identity, and Drive state. Phone layouts use a floating ink bottom bar and reserve bottom padding for it. Page headers use a violet eyebrow, Bricolage display title, short supporting line, and compact actions.
+The app follows the `Fitly Web.html` mockup. A sticky ink top bar carries the Fitly logo, a pill navigation (Mirror, Looks, Closet, Profile), a coral "Drive needs reconnect" pill when Drive is disconnected, and an avatar wrapped in a marigold conic ring that shows fits left today (`2/3 FITS`, coral at zero). Below `md` the pill navigation moves to a floating ink bottom bar with Mirror emphasized in coral; pages reserve bottom padding for it. Content sits on the `canvas` background inside a `max-width: 1560px` container.
 
-Private image cards use 24px to 32px radii, a warm white body, and portrait 4:5 media. Missing files keep their card and show a text status. Generation uses a dark focused view with an animated mirror mark. The global reduced-motion rule collapses the animation when requested.
+Page headers (`shared/components/page-header.tsx`) are a cream band with a `Fitly / Section` breadcrumb, a 31px Bricolage title, one supporting line, and pill actions (`AppLink` with `solid`, `ghost`, or `violet` variants).
+
+Shared CSS utilities in `globals.css`:
+
+- `panel`: cream card, 24px radius, soft `0 2px 10px` ink shadow. Toolbars use the same surface at 28px.
+- `eyebrow`: 10.5px monospace uppercase label in `text-tertiary`, used for panel titles such as `STEP 1 · THE GARMENT`.
+- `stage`: the dark radial mirror surface used for the try-on draft, generation progress, and look results.
+
+Looks, Closet, and Profile use a sticky left rail (`shared/components/side-rail.tsx`) for collections, categories, or tabs. It becomes a horizontal scroller below `lg`. Filters, search (`q`), grid or list view, and profile tabs are URL search parameters, so they render on the server and can be shared.
+
+The try-on steps keep the garment, body, review order. Steps 1 and 2 pair a control panel with the dark `DraftStage`, which is hidden below `lg`. The review step uses the mockup's three columns: selections and fits left, the stage with the coral Generate button, and a `THIS TRY-ON` note list. On the dark stage the companion bubble is cream with a marigold avatar, following the mockup. This is a deliberate difference from the violet bubble used on light surfaces. Generation progress uses the stage with a conic ring and marigold dots, and look detail shows the result on the stage with `TRIED ON` and time badges beside a vertical action list. Fitly shows no fabricated match percentages, although the mockup shows them.
+
+Mockup features without a backend (retailer link import, size guidance, collections beyond favorites, Most Worn, data export, and preference toggles) are omitted or labeled `Coming soon`. `/settings` redirects to `/me?tab=account`.
+
+Private image cards use 22px to 28px radii, a cream body, and portrait media. Missing files keep their card and show a text status. The global reduced-motion rule collapses the animation when requested.
+
+Global link color lives in `@layer base`, so utility text colors on links take precedence.
 
 ## 11. Maintenance
 

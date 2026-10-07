@@ -3,12 +3,13 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { z } from "zod";
 
 import { GARMENT_CATEGORIES, GARMENT_CATEGORY_LABELS } from "@/shared/types/domain";
 
 import { useTryOnDraftStore } from "../stores/try-on-draft.store";
+import { ImageDropField } from "./image-drop-field";
 
 const formSchema = z.object({
   image: z.custom<FileList>((value) => value instanceof FileList && value.length === 1, "Choose an image."),
@@ -30,10 +31,12 @@ export function GarmentUploadForm({
   const [entityId] = useState(() => crypto.randomUUID());
   const setGarmentId = useTryOnDraftStore((state) => state.setGarmentId);
   const [serverError, setServerError] = useState<string | null>(null);
-  const { formState: { errors, isSubmitting }, handleSubmit, register } = useForm<FormValues>({
+  const { formState: { errors, isSubmitting }, handleSubmit, register, control } = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: { name: "", brand: "", price: "" },
   });
+
+  const fileName = useWatch({ control, name: "image" })?.item(0)?.name;
 
   const submit = handleSubmit(async (values) => {
     setServerError(null);
@@ -58,13 +61,8 @@ export function GarmentUploadForm({
   });
 
   return (
-    <form onSubmit={submit} className="space-y-5" noValidate>
-      <label className="group flex min-h-44 cursor-pointer flex-col items-center justify-center rounded-[24px] border-2 border-dashed border-violet/25 bg-lilac-soft/40 px-5 text-center transition-colors hover:border-violet/55">
-        <span className="font-display text-xl font-bold">Drop a garment photo here</span>
-        <span className="mt-2 text-xs leading-5 text-text-secondary">JPG, PNG or WebP. Product-only photos work best.</span>
-        <input type="file" accept="image/jpeg,image/png,image/webp" className="mt-4 block max-w-full text-xs" {...register("image")} />
-        {errors.image ? <span className="mt-2 text-xs font-bold text-coral-deep">{errors.image.message}</span> : null}
-      </label>
+    <form onSubmit={submit} className="space-y-4" noValidate>
+      <ImageDropField title="Drop an image or browse" hint="JPG, PNG or WebP · product-only photos work best" registration={register("image")} fileName={fileName} error={errors.image?.message} />
       <div className="grid gap-4 sm:grid-cols-2">
         <Field label="Garment name" error={errors.name?.message}><input {...register("name")} placeholder="e.g. Cropped bomber" className="field" /></Field>
         <Field label="Brand (optional)" error={errors.brand?.message}><input {...register("brand")} placeholder="e.g. COS" className="field" /></Field>
@@ -74,11 +72,11 @@ export function GarmentUploadForm({
         </Field>
       </div>
       {serverError ? <p role="alert" className="rounded-2xl bg-coral/10 px-4 py-3 text-sm font-bold text-coral-deep">{serverError}</p> : null}
-      <button disabled={isSubmitting} className="min-h-12 w-full rounded-full bg-ink px-6 text-sm font-bold text-surface disabled:opacity-50">{isSubmitting ? "Saving to Drive…" : selectForTryOn ? "Save garment & choose body" : "Save to Closet"}</button>
+      <button disabled={isSubmitting} className="min-h-12 w-full rounded-full bg-ink px-6 text-[13.5px] font-bold text-surface transition-transform hover:-translate-y-px disabled:opacity-50">{isSubmitting ? "Saving to Drive…" : selectForTryOn ? "Save garment & choose body" : "Save to Closet"}</button>
     </form>
   );
 }
 
 function Field({ children, error, label }: { readonly children: React.ReactNode; readonly error?: string; readonly label: string }) {
-  return <label className="block text-xs font-bold text-ink"><span>{label}</span>{children}{error ? <span className="mt-1 block text-coral-deep">{error}</span> : null}</label>;
+  return <label className="block text-[12.5px] font-bold text-text-secondary"><span>{label}</span>{children}{error ? <span className="mt-1 block text-coral-deep">{error}</span> : null}</label>;
 }

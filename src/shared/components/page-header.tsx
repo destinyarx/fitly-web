@@ -1,20 +1,26 @@
+import Link from "next/link";
+
 type PageHeaderProps = {
-  readonly eyebrow: string;
+  readonly crumb: string;
   readonly title: string;
   readonly description: string;
   readonly actions?: React.ReactNode;
 };
 
-export function PageHeader({ actions, description, eyebrow, title }: PageHeaderProps) {
+export function PageHeader({ actions, crumb, description, title }: PageHeaderProps) {
   return (
-    <header className="border-b border-ink/8 bg-surface/75 px-5 py-7 backdrop-blur-xl sm:px-8 lg:px-12 lg:py-9">
-      <div className="mx-auto flex max-w-[1180px] flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
-        <div>
-          <p className="text-[10px] font-extrabold tracking-[0.16em] text-violet uppercase">{eyebrow}</p>
-          <h1 className="font-display mt-2 text-4xl leading-none font-extrabold tracking-[-0.05em] sm:text-5xl">{title}</h1>
-          <p className="mt-3 max-w-xl text-sm leading-6 text-text-secondary">{description}</p>
+    <header className="border-b border-ink/8 bg-surface">
+      <div className="mx-auto flex max-w-[1560px] flex-col gap-4 px-5 py-[18px] sm:flex-row sm:items-end sm:justify-between md:px-7">
+        <div className="min-w-0">
+          <nav aria-label="Breadcrumb" className="flex items-center gap-[7px] text-xs font-semibold text-text-on-dark-muted">
+            <Link href="/looks" className="text-text-on-dark-muted hover:text-violet">Fitly</Link>
+            <span aria-hidden="true">/</span>
+            <span className="text-text-secondary">{crumb}</span>
+          </nav>
+          <h1 className="font-display mt-[5px] text-[31px] leading-[1.05] font-extrabold tracking-[-0.045em] text-ink">{title}</h1>
+          <p className="mt-1 text-sm text-text-secondary">{description}</p>
         </div>
-        {actions ? <div className="flex flex-wrap gap-3">{actions}</div> : null}
+        {actions ? <div className="flex flex-wrap items-center gap-2.5 sm:pb-1">{actions}</div> : null}
       </div>
     </header>
   );

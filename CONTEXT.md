@@ -89,7 +89,7 @@ authenticated
 
 Use App Router route groups to separate public and authenticated layouts without adding URL segments. Layout redirects improve navigation but are not authorization.
 
-Built routes: `/`, `/sign-in`, `/sign-up`, `/terms`, `/privacy`, `/looks`, `/looks/[lookId]`, `/closet`, `/closet/add`, `/try-on/garment`, `/try-on/body`, `/try-on/review`, `/try-on/generating`, `/me`, `/me/add-template`, and `/settings`. `/login` and `/signup` remain redirect aliases. The signed OAuth callback records consent, verifies that the Drive and Fitly Google identities match, stores the refresh token in Vault, creates the visible Fitly Drive folders, and redirects to `/looks` or a validated same-origin `next` path.
+Built routes: `/`, `/sign-in`, `/sign-up`, `/terms`, `/privacy`, `/looks`, `/looks/[lookId]`, `/closet`, `/closet/add`, `/try-on/garment`, `/try-on/body`, `/try-on/review`, `/try-on/generating`, `/me`, `/me/add-template`, and `/settings`. `/settings` redirects to the Profile tabs at `/me?tab=account`. Profile tabs are `account`, `templates`, `plan`, and `privacy`. `/login` and `/signup` remain redirect aliases. The signed OAuth callback records consent, verifies that the Drive and Fitly Google identities match, stores the refresh token in Vault, creates the visible Fitly Drive folders, and redirects to `/looks` or a validated same-origin `next` path.
 
 ## 4. Architecture
 

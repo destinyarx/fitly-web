@@ -31,5 +31,5 @@ export function SourceDeleteButton({
     }
   }
 
-  return <button type="button" onClick={deleteSource} disabled={isDeleting} className="mt-3 text-[11px] font-bold text-coral-deep disabled:opacity-50">{isDeleting ? "Deleting…" : "Delete"}</button>;
+  return <button type="button" onClick={deleteSource} disabled={isDeleting} aria-label={`Delete ${name}`} className="inline-flex min-h-9 items-center rounded-full px-3 text-xs font-bold text-coral-deep transition-colors hover:bg-coral/10 disabled:opacity-50">{isDeleting ? "Deleting…" : "Delete"}</button>;
 }
